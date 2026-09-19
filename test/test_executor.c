@@ -1,5 +1,4 @@
 #include <stdio.h>
-
 #include "executor.h"
 
 int main(void) {
@@ -7,5 +6,12 @@ int main(void) {
     Comando cmd = { argv1, { NULL, NULL, 0 } };
     Pipeline p = { &cmd, 1, 0 };
 
-    return ejecutar_ejecutor(&p);
+    int rc = ejecutar_ejecutor(&p);
+    if (rc != 0) {
+        fprintf(stderr, "ejecutar_ejecutor fallo con rc=%d\n", rc);
+        return 1;
+    }
+
+    puts("executor ok");
+    return 0;
 }
