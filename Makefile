@@ -1,5 +1,5 @@
 CC      := gcc
-CFLAGS  := -Wall -Wextra -O2
+CFLAGS  := -Wall -Wextra -std=gnu11 -O2
 TARGET  := shell
 
 SRC := $(wildcard src/*.c)
