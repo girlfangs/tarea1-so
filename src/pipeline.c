@@ -1,10 +1,12 @@
 #include "pipeline.h"
+#include "jobs.h"
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <string.h>
 
 static void redireccion(Redireccion *r) {
     if (r->archivo_in) {
@@ -91,7 +93,18 @@ int ejecutar_pipeline(Pipeline *p){
         for (int i = 0; i < n; i++) {
             waitpid(pids[i], NULL, 0);
         }
-        //esto lo completa quien hace SIGCHLD/jobs.
+    } else {
+        // Reconstruir la línea de comando
+        char cmd_completo[256] = "";
+        for (int j = 0; p->cmds[0].argv[j] != NULL; j++) {
+            if (j > 0) {
+                strncat(cmd_completo, " ", sizeof(cmd_completo) - strlen(cmd_completo) - 1);
+            }
+            strncat(cmd_completo, p->cmds[0].argv[j], sizeof(cmd_completo) - strlen(cmd_completo) - 1);
+        }
+
+        // Registrar con el comando completo
+        jobs_agregar(pids[n - 1], cmd_completo);
     }
     return 0;
 }
