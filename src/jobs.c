@@ -1,5 +1,6 @@
 #define _GNU_SOURCE
 #include "jobs.h"
+#include "io.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,12 +54,12 @@ int jobs_agregar(pid_t pid, const char *cmd_line) {
             tabla_jobs[i].prev_cpu = 0;
 
             // Formato exigido en el PDF: [job_id] PID
-            printf("[%d] %d\n", tabla_jobs[i].job_id, (int)pid);
+            fout("[%d] %d\n", tabla_jobs[i].job_id, (int)pid);
             fflush(stdout);
             return tabla_jobs[i].job_id;
         }
     }
-    fprintf(stderr, "shell: limite maximo de jobs alcanzado (%d)\n", MAX_JOBS);
+    ferr("shell: limite maximo de jobs alcanzado (%d)\n", MAX_JOBS);
     return -1;
 }
 
@@ -109,7 +110,7 @@ void instalar_sigchld(void) {
 void jobs_notificar_terminados(void) {
     for (int i = 0; i < MAX_JOBS; i++) {
         if (tabla_jobs[i].pid > 0 && tabla_jobs[i].estado == JOB_TERMINADO) {
-            printf("[%d]+  Done                    %s\n", 
+            fout("[%d]+  Done                    %s\n",
                    tabla_jobs[i].job_id, tabla_jobs[i].comando);
             fflush(stdout);
 
@@ -133,7 +134,7 @@ int builtin_cd(char **argv) {
     if (destino == NULL) {
         destino = getenv("HOME");
         if (destino == NULL) {
-            fprintf(stderr, "cd: la variable HOME no esta definida\n");
+            ferr("cd: la variable HOME no esta definida\n");
             return -1;
         }
     }
@@ -163,7 +164,7 @@ int builtin_jobs(char **argv) {
     (void)argv;
     for (int i = 0; i < MAX_JOBS; i++) {
         if (tabla_jobs[i].pid > 0 && tabla_jobs[i].estado == JOB_EJECUTANDO) {
-            printf("[%d]   Ejecutando              %s\n", 
+            fout("[%d]   Ejecutando              %s\n",
                    tabla_jobs[i].job_id, tabla_jobs[i].comando);
         }
     }
@@ -289,10 +290,10 @@ int builtin_pmon(char **argv) {
     // Bucle interactivo
     while (pmon_activo) {
         // Secuencia ANSI estandar para limpiar la pantalla y ubicar cursor al inicio
-        printf("\033[H\033[2J");
-        printf("%-7s | %-16s | %-12s | %-11s | %s\n", 
+        fout("\033[H\033[2J");
+        fout("%-7s | %-16s | %-12s | %-11s | %s\n",
                "PID", "COMANDO", "ESTADO", "%CPU (aprox)", "RSS (KB)");
-        printf("-----------------------------------------------------------------\n");
+        fout("-----------------------------------------------------------------\n");
 
         for (int i = 0; i < MAX_JOBS; i++) {
             if (tabla_jobs[i].pid > 0 && tabla_jobs[i].estado == JOB_EJECUTANDO) {
@@ -315,7 +316,7 @@ int builtin_pmon(char **argv) {
                 }
                 tabla_jobs[i].prev_cpu = total_ticks;
 
-                printf("%-7d | %-16s | %-12s | %-11.1f | %ld\n",
+                fout("%-7d | %-16s | %-12s | %-11.1f | %ld\n",
                        tabla_jobs[i].pid,
                        tabla_jobs[i].comando,
                        describir_estado(est_char),
@@ -338,7 +339,7 @@ int builtin_pmon(char **argv) {
     sigaction(SIGALRM, &sa_alrm_old, NULL);
     sigaction(SIGINT, &sa_int_old, NULL);
 
-    printf("\n[pmon finalizado]\n");
+    fout("\n[pmon finalizado]\n");
     fflush(stdout);
     return 0;
 }

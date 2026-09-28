@@ -4,6 +4,7 @@
 #include "parser.h"
 #include "executor.h"
 #include "jobs.h"
+#include "io.h"
 
 int main(void) {
     // La shell conserva los jobs y controla sus señales desde el proceso padre.
@@ -18,8 +19,7 @@ int main(void) {
         if (getcwd(cwd, sizeof(cwd)) == NULL) {
             snprintf(cwd, sizeof(cwd), "?");
         }
-        printf("miShell:%s$ ", cwd);
-        fflush(stdout);
+        fout("miShell:%s$ ", cwd);
 
         if (parse_cmdline(NULL, 100) == 0) {
             putchar('\n');

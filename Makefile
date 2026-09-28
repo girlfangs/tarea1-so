@@ -1,9 +1,15 @@
-CC      := gcc
-CFLAGS  := -Wall -Wextra -std=gnu11 -O2
-TARGET  := shell
+CC      ?= gcc
+CFLAGS  ?= -Wall -Wextra -std=gnu11
+TARGET  ?= shell
 
 SRC := $(wildcard src/*.c)
 OBJ := $(SRC:src/%.c=build/%.o)
+
+ifeq ($(DEBUG), 1)
+        CFLAGS += -g
+else
+        CFLAGS += -O2
+endif
 
 .PHONY: all clean
 

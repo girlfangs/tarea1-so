@@ -1,2 +1,2 @@
 CompileFlags:
-  Add: [-Wall, -Werror]
+  Add: [-Wall, -Werror, -std=gnu11, -O2]

@@ -1,5 +1,6 @@
 #include "parser.h"
 #include "executor.h"
+#include "io.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -160,7 +161,7 @@ int parser_next(Parser *p, ExecutionUnit *e) {
                 Token dest;
                 lexer_next(p->l, &dest);
                 if (dest.kind != TOK_WORD) {
-                    fprintf(stderr, "parser: se esperaba un archivo despues de '<'\n");
+                    ferr("parser: se esperaba un archivo despues de '<'\n");
                     goto error_sintaxis;
                 }
                 free(e->archivo_in);
@@ -175,7 +176,7 @@ int parser_next(Parser *p, ExecutionUnit *e) {
                 Token dest;
                 lexer_next(p->l, &dest);
                 if (dest.kind != TOK_WORD) {
-                    fprintf(stderr, "parser: se esperaba un archivo despues de '%s'\n",
+                    ferr("parser: se esperaba un archivo despues de '%s'\n",
                             (tok.kind == TOK_REDIR_OUT_APPEND) ? ">>" : ">");
                     goto error_sintaxis;
                 }
@@ -189,12 +190,12 @@ int parser_next(Parser *p, ExecutionUnit *e) {
 
             case TOK_REDIR_DUP:
                 // Duplicacion de descriptores (ej. 2>&1): no soportado aun
-                fprintf(stderr, "parser: redireccion de descriptores no soportada\n");
+                ferr("parser: redireccion de descriptores no soportada\n");
                 goto error_sintaxis;
 
             case TOK_PIPE:
                 if (!hay_contenido) {
-                    fprintf(stderr, "parser: error de sintaxis cerca de '|'\n");
+                    ferr("parser: error de sintaxis cerca de '|'\n");
                     goto error_sintaxis;
                 }
                 e->out = TO_PIPE;
@@ -202,7 +203,7 @@ int parser_next(Parser *p, ExecutionUnit *e) {
 
             case TOK_AMP:
                 if (!hay_contenido) {
-                    fprintf(stderr, "parser: error de sintaxis cerca de '&'\n");
+                    ferr("parser: error de sintaxis cerca de '&'\n");
                     goto error_sintaxis;
                 }
                 e->background = 1;
@@ -210,7 +211,7 @@ int parser_next(Parser *p, ExecutionUnit *e) {
 
             case TOK_LPAREN:
             case TOK_RPAREN:
-                fprintf(stderr, "parser: subshells '()' no soportados aun\n");
+                ferr("parser: subshells '()' no soportados aun\n");
                 goto error_sintaxis;
 
             case TOK_NEWLINE:
@@ -218,7 +219,7 @@ int parser_next(Parser *p, ExecutionUnit *e) {
                 goto fin_unidad;
 
             default:
-                fprintf(stderr, "parser: token no reconocido (%s)\n", token_kind_name(tok.kind));
+                ferr("parser: token no reconocido (%s)\n", token_kind_name(tok.kind));
                 goto error_sintaxis;
         }
     }
@@ -267,7 +268,7 @@ size_t parse_cmdline(Pipeline *pipeline, size_t n) {
         // Cada unidad terminada en '|' se conserva hasta completar el pipeline.
         Comando *nuevo = realloc(comandos, (cantidad + 1) * sizeof(*comandos));
         if (nuevo == NULL) {
-            perror("realloc");
+            ferr("realloc");
             executionunit_free(&ex);
             break;
         }

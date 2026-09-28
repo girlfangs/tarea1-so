@@ -1,6 +1,7 @@
 #include "executor.h"
 #include "pipeline.h"
 #include "jobs.h"
+#include "io.h"
 
 #include <signal.h>
 #include <stdio.h>
@@ -52,13 +53,13 @@ static int ejecutar_builtin(const Comando *cmd) {
 
 int ejecutar_ejecutor(Pipeline *p) {
     if (p == NULL || p->cmds == NULL || p->n <= 0) {
-        fprintf(stderr, "ejecutor: pipeline invalido\n");
+        ferr("ejecutor: pipeline invalido\n");
         return -1;
     }
 
     for (int i = 0; i < p->n; i++) {
         if (p->cmds[i].argv == NULL || p->cmds[i].argv[0] == NULL) {
-            fprintf(stderr, "ejecutor: comando %d sin ejecutable\n", i);
+            ferr("ejecutor: comando %d sin ejecutable\n", i);
             return -1;
         }
     }

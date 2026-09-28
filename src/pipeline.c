@@ -1,5 +1,7 @@
 #include "pipeline.h"
 #include "jobs.h"
+#include "io.h"
+
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -15,7 +17,7 @@ static void redireccion(Redireccion *r) {
     if (r->archivo_in) {
         int fd = open(r->archivo_in, O_RDONLY);
         if (fd < 0){ 
-            perror("open");
+            ferr("open");
             _exit(1);
         }
         dup2(fd, STDIN_FILENO); // fd 0 apunta al archivo
@@ -27,7 +29,7 @@ static void redireccion(Redireccion *r) {
         int flags = O_WRONLY | O_CREAT | (r->append ? O_APPEND : O_TRUNC);
         int fd = open(r->archivo_out, flags, 0644);
         if (fd < 0) {
-            perror("open"); 
+            ferr("open");
             _exit(1);
         }
         dup2(fd, STDOUT_FILENO); // fd 1 ahora apunta al archivo
@@ -68,12 +70,12 @@ int ejecutar_pipeline(Pipeline *p){
     // Se pide al menos un par para que al llamar a malloc(0) no devuelva NULL sin que sea un error
     int (*pipes)[2] = malloc (sizeof(int[2])*(n > 1 ? (n - 1) : 1));
     if (pipes == NULL) {
-        perror("malloc");
+        ferr("malloc");
         return -1;
     }
     for (int i = 0; i < n - 1; i++) {
         if (pipe(pipes[i]) < 0) {
-            perror("pipe");
+            ferr("pipe");
             // Se cierran los pipes ya creados para no filtrar descriptores
             for (int k = 0; k < i; k++) {
                 close(pipes[k][0]);
@@ -103,7 +105,7 @@ int ejecutar_pipeline(Pipeline *p){
     for(int i = 0; i < n; i++){
         pids[i] = fork();
         if (pids[i] < 0) {
-            perror("fork");
+            ferr("fork");
             fallo = 1;
             break;
         }
@@ -130,7 +132,7 @@ int ejecutar_pipeline(Pipeline *p){
             // Una redireccion explicita tiene prioridad sobre el pipe
             redireccion(&p -> cmds[i].redir);
             execvp(p -> cmds[i].argv[0], p -> cmds[i].argv);
-            perror("execvp");
+            ferr("execvp");
             _exit(127);
         }
     }
