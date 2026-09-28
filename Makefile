@@ -1,6 +1,6 @@
 CC      ?= gcc
 CFLAGS  ?= -Wall -Wextra -std=gnu11
-TARGET  ?= shell
+TARGET  ?= mishell
 
 SRC := $(wildcard src/*.c)
 OBJ := $(SRC:src/%.c=build/%.o)

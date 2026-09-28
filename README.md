@@ -3,7 +3,7 @@
 Para compilar y ejecutar el proyecto:
 
     $ make
-    $ ./shell
+    $ ./mishell
 
 Integrantes:
 
