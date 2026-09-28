@@ -1,6 +1,3 @@
 /build/
 /shell
 *.o
-out1.txt
-out3.txt
-test/test_pipeline
