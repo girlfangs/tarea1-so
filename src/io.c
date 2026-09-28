@@ -9,7 +9,7 @@
 #include <errno.h>
 
 static int create_fmt(char **strp, const char *fmt, va_list args) {
-    return asprintf(strp, fmt, args);
+    return vasprintf(strp, fmt, args);
 }
 
 static int write_all(int fd, const void *buf, size_t len) {
