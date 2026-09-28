@@ -3,6 +3,8 @@
 #include "lexer.h"
 #include "estructura.h"
 
+#define PARSE_EOF ((size_t) - 1)
+
 typedef enum {
     TO_STDOUT,
     TO_FILE,

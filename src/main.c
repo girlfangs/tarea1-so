@@ -20,8 +20,9 @@ int main(void) {
             snprintf(cwd, sizeof(cwd), "?");
         }
         fout("miShell:%s$ ", cwd);
+        size_t r = parse_cmdline(NULL, 100);
 
-        if (parse_cmdline(NULL, 100) == 0) {
+        if (r == PARSE_EOF) {
             putchar('\n');
             break;
         }

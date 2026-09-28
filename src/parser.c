@@ -250,10 +250,16 @@ size_t parse_cmdline(Pipeline *pipeline, size_t n) {
 
     char buf[MAX_LINE] = { 0 };
     ssize_t rd = read(STDIN_FILENO, buf, sizeof(buf) - 1);
-    if (rd <= 0) {
+    if (rd == 0) {
+        return PARSE_EOF;
+    }
+    if (rd < 0) {
         return 0;
     }
     buf[rd] = '\0';
+    if (buf[0] == '\n') {
+        return 0;
+    }
 
     // prepararse para lexear la linea
     Lexer *l = lexer_new(buf);
