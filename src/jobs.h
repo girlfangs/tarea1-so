@@ -1,5 +1,4 @@
-#ifndef JOBS_H
-#define JOBS_H
+#pragma once
 
 #include <sys/types.h>
 
@@ -31,5 +30,3 @@ int builtin_cd(char **argv);
 int builtin_exit(char **argv);
 int builtin_jobs(char **argv);
 int builtin_pmon(char **argv);
-
-#endif

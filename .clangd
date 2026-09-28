@@ -1,2 +1,5 @@
 CompileFlags:
-  Add: [-Wall, -Werror, -std=gnu11, -O2]
+  Add: [-Isrc, -Wall, -Werror, -std=gnu11]
+
+Index:
+  Background: Build

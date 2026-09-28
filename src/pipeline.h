@@ -1,6 +1,4 @@
-#ifndef PIPELINE_H
-#define PIPELINE_H
+#pragma once
 
 #include "estructura.h"
 int ejecutar_pipeline(Pipeline *p);
-#endif

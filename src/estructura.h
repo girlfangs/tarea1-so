@@ -1,5 +1,4 @@
-#ifndef TIPOS_H
-#define TIPOS_H
+#pragma once
 
 typedef struct {
     char *archivo_in;
@@ -17,5 +16,3 @@ typedef struct {
     int      n;
     int      background;
 } Pipeline;
-
-#endif
