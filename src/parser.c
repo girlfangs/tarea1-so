@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "executor.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -244,7 +245,6 @@ int parser_next(Parser *p, ExecutionUnit *e) {
 }
 
 size_t parse_cmdline(Pipeline *pipeline, size_t n) {
-    (void)pipeline;
     (void)n;
 
     char buf[MAX_LINE] = { 0 };
@@ -260,12 +260,62 @@ size_t parse_cmdline(Pipeline *pipeline, size_t n) {
     ExecutionUnit ex;
     size_t total = 0;
 
+    Comando *comandos = NULL;
+    size_t cantidad = 0;
+
     while (parser_next(p, &ex)) {
-        // para cada comando ejecutable...
-        printf("ExecutionUnit { %s, %d, %d }\n", ex.argv[0], ex.in, ex.out);
-        executionunit_free(&ex);
+        // Cada unidad terminada en '|' se conserva hasta completar el pipeline.
+        Comando *nuevo = realloc(comandos, (cantidad + 1) * sizeof(*comandos));
+        if (nuevo == NULL) {
+            perror("realloc");
+            executionunit_free(&ex);
+            break;
+        }
+        comandos = nuevo;
+        comandos[cantidad].argv = ex.argv;
+        comandos[cantidad].redir.archivo_in = ex.archivo_in;
+        comandos[cantidad].redir.archivo_out = ex.archivo_out;
+        comandos[cantidad].redir.append = ex.append;
+        ex.argv = NULL;
+        ex.archivo_in = NULL;
+        ex.archivo_out = NULL;
+        cantidad++;
+
+        if (ex.out == TO_PIPE) {
+            continue;
+        }
+
+        // Sin |, la unidad actual cierra el pipeline y se puede despachar.
+        Pipeline actual = { comandos, (int)cantidad, ex.background };
+        if (pipeline != NULL) {
+            *pipeline = actual;
+        }
+        ejecutar_ejecutor(&actual);
+
+        // El ejecutor ya terminó de usar los argumentos; liberar la unidad completa.
+        for (size_t i = 0; i < cantidad; i++) {
+            for (size_t j = 0; comandos[i].argv[j] != NULL; j++) {
+                free(comandos[i].argv[j]);
+            }
+            free(comandos[i].argv);
+            free(comandos[i].redir.archivo_in);
+            free(comandos[i].redir.archivo_out);
+        }
+        free(comandos);
+        comandos = NULL;
+        cantidad = 0;
         total++;
     }
+
+    for (size_t i = 0; i < cantidad; i++) {
+        for (size_t j = 0; comandos[i].argv[j] != NULL; j++) {
+            free(comandos[i].argv[j]);
+        }
+        free(comandos[i].argv);
+        free(comandos[i].redir.archivo_in);
+        free(comandos[i].redir.archivo_out);
+    }
+    free(comandos);
 
     parser_delete(p);
     lexer_delete(l);

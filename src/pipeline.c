@@ -50,6 +50,18 @@ static void construir_cmd(Pipeline *p, char *buf, size_t tam) {
     }
 }
 
+// Configura las señales del hijo sin usar signal(), tal como exige el enunciado.
+// En foreground se restauran las acciones por defecto; en background se ignoran.
+static void configurar_senales_hijo(int background) {
+    struct sigaction sa;
+
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    sa.sa_handler = background ? SIG_IGN : SIG_DFL;
+    sigaction(SIGINT, &sa, NULL);
+    sigaction(SIGQUIT, &sa, NULL);
+}
+
 int ejecutar_pipeline(Pipeline *p){
     int n = p->n;
     // n-1 tuberias para n comandos.
@@ -100,17 +112,8 @@ int ejecutar_pipeline(Pipeline *p){
             // Se restaura primero para que el programa lanzado no arranque con SIGCHLD bloqueada.
             sigprocmask(SIG_SETMASK, &mask_old, NULL);
 
-            // Reemplazar por la funcion con sigaction
-            if (p->background) {
-                // Los procesos en Background no se ven afectados por ctrl + c
-                // ya que la shell ignora SIGINT entonces SIG_IGN sobrevive al execvp.
-                signal(SIGINT, SIG_IGN);
-                signal(SIGQUIT, SIG_IGN);
-            } else {
-                // ctrl + c mata al programa y no a la shell
-                signal(SIGINT, SIG_DFL);
-                signal(SIGQUIT, SIG_DFL);
-            }
+            // Foreground recibe Ctrl+C/Ctrl+\\; background queda protegido.
+            configurar_senales_hijo(p->background);
             // Conecta la entrada al pipe anterior y la salida al siguiente
             if (i > 0) {
                 dup2(pipes[i-1][0], STDIN_FILENO);

@@ -1,21 +1,30 @@
 #include <stdio.h>
-#include <stdbool.h>
+#include <unistd.h>
 
 #include "parser.h"
 #include "executor.h"
+#include "jobs.h"
 
 int main(void) {
-    bool running = true;
-    // preparar terminal
+    // La shell conserva los jobs y controla sus señales desde el proceso padre.
+    jobs_init();
+    instalar_sigchld();
+    instalar_senales_shell();
 
-    // entrar en loop de I/O
-    while(running) {
-        parse_cmdline(NULL, 100);
+    for (;;) {
+        char cwd[1024];
+
+        jobs_notificar_terminados();
+        if (getcwd(cwd, sizeof(cwd)) == NULL) {
+            snprintf(cwd, sizeof(cwd), "?");
+        }
+        printf("miShell:%s$ ", cwd);
+        fflush(stdout);
+
+        if (parse_cmdline(NULL, 100) == 0) {
+            putchar('\n');
+            break;
+        }
     }
-
-    char *argv1[] = {"echo", "hola", NULL};
-    Comando cmd = { argv1, { NULL, NULL, 0 } };
-    Pipeline p = { &cmd, 1, 0 };
-
-    return ejecutar_ejecutor(&p);
+    return 0;
 }
